@@ -35,6 +35,8 @@ CopyTrust and P5 Search Jumper are current consumers. Project Folder Tracker is 
 
 See [Capabilities and boundaries](CAPABILITIES.md) for implemented versus developing areas, [Workflow and evidence](WORKFLOWS.md) for application responsibilities, and [P5 API examples](P5_API_EXAMPLES.md) for illustrative HTTP requests.
 
+[Archiware P5 workflow compatibility](ARCHIWARE_P5_APP_COMPATIBILITY.md) covers the applications themselves: which of them talk to P5, how they reach it, which two write to it, and the three site workflows they cover.
+
 ## What it does not replace
 
 P5Kit requires an existing Archiware P5 installation and appropriate access. It does not supply P5 itself, tape hardware management, a graphical archive application, or a complete wrapper for every P5 REST endpoint.
