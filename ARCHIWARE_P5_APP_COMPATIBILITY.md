@@ -236,10 +236,18 @@ Restore is off until enabled in *Settings ▸ Restore ▸ Enable P5 Restore*.
   access to a P5 installation.
 - Passwords are stored per server in the macOS Keychain.
 - Transport is moving from `curl` to `URLSession`. Several apps still shell out to `curl`, which
-  was originally chosen because App Transport Security blocks cleartext HTTP and most P5 hosts
-  speak plain HTTP. That turned out to be avoidable: P5 Archive Search 2.6 runs entirely on
-  `URLSession` against plain-HTTP servers, including over an overlay network, by declaring the
-  exception in its `Info.plist`. The remaining `curl` apps are being moved the same way.
+  was originally chosen because App Transport Security blocks plain HTTP and the apps were all
+  pointed at P5's plain-HTTP port. That turned out to be avoidable: P5 Archive Search 2.6 and
+  P5 Archive Overview 2.1 run entirely on `URLSession` against plain-HTTP servers, including over
+  an overlay network, by declaring the exception in their `Info.plist`. The remaining `curl` apps
+  are being moved the same way.
+- **P5 serves the same REST API over TLS, on port 8443 by default.** Measured against a live
+  server on 2026-09-18: TLS 1.3, HTTP 200, identical paths and responses to port 8000. No app
+  offers it as a choice yet — every one of them hardcodes `http://`. Two things make it more than
+  a port change: TLS is not enabled on every server (of three reachable servers, 8443 answered on
+  one and not another), and the certificate P5 ships with is a self-signed placeholder whose
+  subject is Archiware's own template — `CN=Common Name`, `test@email.address` — so standard trust <!-- privacy-scan: allow -->
+  evaluation rejects it and `URLSession` will refuse the connection by default.
 
 **Caveats — read these before pointing anything at production**
 
