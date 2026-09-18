@@ -18,6 +18,8 @@ P5Kit provides a common foundation for these tasks. Its purpose is to make integ
 | --- | --- |
 | Connections | Models one logical server with multiple configured endpoints, priorities, credential references, and identity evidence. |
 | REST communication | Provides typed operations through URLSession or a curl-based transport. |
+| Transport security | Supports plain HTTP and TLS, with a trust policy per server: ordinary system verification, or a pinned certificate identified by its SHA-256. A certificate probe reports what a server presents so an operator can decide. |
+| Archive overview | Reads finished archive jobs and media-pool capacity, keeping each job's directory list intact. |
 | Resource discovery | Reads server information, clients, archive plans, indexes, and metadata keys. |
 | Archiving | Submits selected paths, supports per-path metadata, and extracts job and entry information. |
 | Restoring | Resolves exact archive entry handles and submits restore selections with relative-target validation. |
@@ -29,9 +31,9 @@ The endpoint resolver and safety models are building blocks. Calling application
 
 ## Status and scope
 
-This overview describes the **0.3.0-dev** development baseline, reviewed on **2026-09-10**. P5Kit targets macOS 13 or later and uses Swift tools 5.9. Its public API is still evolving.
+This overview describes the **0.8.0-dev** development baseline, reviewed on **2026-09-18**. P5Kit targets macOS 13 or later and uses Swift tools 5.9. Its public API is still evolving.
 
-CopyTrust and P5 Search Jumper are current consumers. Project Folder Tracker is a prospective adopter, rather than a current P5Kit consumer at this baseline.
+Five applications consume it, pinned by exact tag and moved only when each application is next worked on, so they sit on different baselines by design: P5 Archive Overview, P5 Archive Search and P5 Archive Browser on 0.8.0-dev, P5 Search Jumper on 0.4.0-dev, and CopyTrust on 0.3.0-dev. Project Folder Tracker remains a prospective adopter.
 
 See [Capabilities and boundaries](CAPABILITIES.md) for implemented versus developing areas, [Workflow and evidence](WORKFLOWS.md) for application responsibilities, and [P5 API examples](P5_API_EXAMPLES.md) for illustrative HTTP requests.
 

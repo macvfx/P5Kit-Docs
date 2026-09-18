@@ -2,7 +2,7 @@
 
 [Overview](README.md) · [Workflow and evidence](WORKFLOWS.md) · [API examples](P5_API_EXAMPLES.md)
 
-The documented baseline is 0.3.0-dev, reviewed on 2026-09-10. Implementation availability, application adoption, and live-server validation are distinct: a capability in the library does not establish that every consumer uses it or that it has been tested against every P5 version.
+The documented baseline is 0.8.0-dev, reviewed on 2026-09-18. Implementation availability, application adoption, and live-server validation are distinct: a capability in the library does not establish that every consumer uses it or that it has been tested against every P5 version.
 
 ## Connections and transport
 
@@ -13,6 +13,8 @@ The resolver accepts an injected read-only probe. It evaluates reachability and 
 Mutations and accepted-job follow-up have endpoint-pinning models. Moving job follow-up to another route requires an explicit verified transition. These models do not turn the REST client into an automatic network failover service.
 
 The REST layer can use URLSession or a curl process. The curl transport puts request configuration into restricted temporary files rather than exposing credentials and request bodies as process arguments. HTTP failures retain their status separately from transport failures.
+
+Either transport can address a P5 server over plain HTTP or TLS. P5 serves the same REST API on both, on port 8000 and 8443 respectively by default, though TLS is enabled per installation rather than universally. Because P5 ships a self-signed certificate that ordinary system verification rejects, the URLSession transport takes an explicit trust policy: system verification, or a certificate pinned by its SHA-256 fingerprint, which refuses a server that later presents a different certificate. A probe reports the fingerprint, subject, and system verdict of the certificate a server presents, so that decision can be put to an operator rather than assumed.
 
 ## Archive, restore, and job operations
 

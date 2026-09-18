@@ -30,9 +30,9 @@ paths, each of them only when explicitly asked.
 | **P5 Archive Manager API** | 4.0.0 build 25 · beta | REST API v1 | Yes — archive submit (opt-in) |
 | **P5 Archive Manager** (nsdchat edition) | 3.7.1 build 5 | `nsdchat` CLI, local | No |
 | **CopyTrust** | 2.8.3 build 24 | REST API v1 | Yes — archive submit (opt-in) |
-| **P5 Archive Overview** | 2.0.2 build 10 | REST `/archive/overview` | No |
-| **P5 Archive Search** | 2.6 build 17 | REST API v1 | Yes — restore submit |
-| **P5 Archive Browser** | 0.34 build 50 · beta | TSV inventories + REST API v1 | Yes — restore submit (off by default) |
+| **P5 Archive Overview** | 2.2 build 16 | REST `/archive/overview`, HTTP or TLS | No |
+| **P5 Archive Search** | 2.7 build 18 | REST API v1, HTTP or TLS | Yes — restore submit |
+| **P5 Archive Browser** | 0.36 build 53 · beta | TSV inventories + REST API v1, HTTP or TLS | Yes — restore submit (off by default) |
 | **P5 Archive Export** | 1.5 build 4 | `resources.db` read-only + `nsdchat` | No |
 | **P5 Health Check** (Mac / menu bar / iPhone / CLI) | 1.7.1 build 3 | REST API v1 | No |
 | **P5 Search Jumper** | 0.2.2-beta build 6 | REST `/restore/restoreselections` | Yes — restore submit |
@@ -242,8 +242,9 @@ Restore is off until enabled in *Settings ▸ Restore ▸ Enable P5 Restore*.
   an overlay network, by declaring the exception in their `Info.plist`. The remaining `curl` apps
   are being moved the same way.
 - **P5 serves the same REST API over TLS, on port 8443 by default.** Measured against a live
-  server on 2026-09-18: TLS 1.3, HTTP 200, identical paths and responses to port 8000. No app
-  offers it as a choice yet — every one of them hardcodes `http://`. Two things make it more than
+  server on 2026-09-18: TLS 1.3, HTTP 200, identical paths and responses to port 8000.
+  **P5 Archive Overview 2.2, P5 Archive Search 2.7 and P5 Archive Browser 0.36 offer it as a
+  per-server choice**, through P5Kit's trust policy; the remaining apps still hardcode `http://`. Two things make it more than
   a port change: TLS is not enabled on every server (of three reachable servers, 8443 answered on
   one and not another), and the certificate P5 ships with is a self-signed placeholder whose
   subject is Archiware's own template — `CN=Common Name`, `test@email.address` — so standard trust <!-- privacy-scan: allow -->
@@ -263,7 +264,7 @@ Restore is off until enabled in *Settings ▸ Restore ▸ Enable P5 Restore*.
   *Settings ▸ Restore ▸ Enable P5 Restore*. It restores whole folders only; individual-file
   restore is deliberately not built, because per-file selections are known to flatten the restored
   tree without per-entry `targetPath` containment, which is not yet verified.
-- **Several apps are pre-release.** P5 Archive Manager API 4.0.0, P5 Archive Browser 0.31 and
+- **Several apps are pre-release.** P5 Archive Manager API 4.0.0, P5 Archive Browser 0.36 and
   P5 Search Jumper 0.2.1 are betas.
 - **Proxies are derivatives.** They never replace verified originals in an archive.
 
