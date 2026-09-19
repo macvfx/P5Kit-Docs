@@ -31,9 +31,11 @@ The endpoint resolver and safety models are building blocks. Calling application
 
 ## Status and scope
 
-This overview describes the **0.8.0-dev** development baseline, reviewed on **2026-09-18**. P5Kit targets macOS 13 or later and uses Swift tools 5.9. Its public API is still evolving.
+This overview describes the **0.8.0-dev** development baseline, reviewed on **2026-09-19**. P5Kit targets macOS 13 or later and uses Swift tools 5.9. Its public API is still evolving.
 
-Five applications consume it, pinned by exact tag and moved only when each application is next worked on, so they sit on different baselines by design: P5 Archive Overview, P5 Archive Search and P5 Archive Browser on 0.8.0-dev, P5 Search Jumper on 0.4.0-dev, and CopyTrust on 0.3.0-dev. Project Folder Tracker remains a prospective adopter.
+Six applications consume it, pinned by exact tag and moved only when each application is next worked on, so they sit on different baselines by design: P5 Archive Overview, P5 Archive Search, P5 Archive Browser and P5 Archive Manager API on 0.8.0-dev, P5 Search Jumper on 0.4.0-dev, and CopyTrust on 0.3.0-dev. Project Folder Tracker remains a prospective adopter.
+
+Consuming the package and adopting its typed surface are different things. P5 Archive Manager API resolves 0.8.0-dev for the network transport and TLS trust model only — it still parses P5's responses with its own code — so it is a consumer of the transport layer rather than of the typed REST API.
 
 See [Capabilities and boundaries](CAPABILITIES.md) for implemented versus developing areas, [Workflow and evidence](WORKFLOWS.md) for application responsibilities, and [P5 API examples](P5_API_EXAMPLES.md) for illustrative HTTP requests.
 
