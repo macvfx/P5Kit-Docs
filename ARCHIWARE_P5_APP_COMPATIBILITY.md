@@ -34,7 +34,7 @@ paths, each of them only when explicitly asked.
 | **P5 Archive Search** | 2.8 build 19 | REST API v1, HTTP or TLS | Yes — restore submit |
 | **P5 Archive Browser** | 0.37 build 56 · beta | TSV inventories + REST API v1, HTTP or TLS | Yes — restore submit (off by default) |
 | **P5 Archive Export** | 1.5.5 build 10 | `resources.db` read-only + `nsdchat` | No |
-| **P5 Health Check** (Mac / menu bar / iPhone / CLI) | 1.7.1 build 3 | REST API v1 | No |
+| **P5 Health Check** (Mac / menu bar / iPhone / CLI) | 1.8.0 build 7 (Mac; iPhone 1.2.1) | REST API v1 | No |
 | **P5 Search Jumper** | 0.2.2-beta build 6 | REST `/restore/restoreselections` | Yes — restore submit |
 | **Drop Verify**, **MHL Verify**, **Folder Copy Compare** | 2.8.1 build 21 / 2.6.0 / 2.8.1 build 21 | No P5 connection | No |
 
