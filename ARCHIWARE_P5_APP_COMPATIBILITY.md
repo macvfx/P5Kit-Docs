@@ -2,7 +2,7 @@
 
 **Which of these macOS apps talk to Archiware P5, how they talk to it, and what they add to a P5 site.**
 
-Versions checked against published GitHub releases on 2026-09-17. Live-server behaviour tested
+Versions checked against published GitHub releases on 2026-09-25. Live-server behaviour tested
 against **Archiware P5 8.0.4**.
 
 ---
@@ -18,7 +18,7 @@ questions come up every week in a post facility and P5 answers none of them quic
 
 These apps answer those three, and they do it without changing how P5 is administered.
 **Everything is read-only against P5 except two clearly-marked write paths** — submitting an
-archive job, and submitting a restore job. Four of the eleven apps can take one of those two
+archive job, and submitting a restore job. Five of the apps can take one of those two
 paths, each of them only when explicitly asked.
 
 ---
@@ -27,23 +27,24 @@ paths, each of them only when explicitly asked.
 
 | App | Version | How it reaches P5 | Writes to P5? |
 | --- | --- | --- | --- |
-| **P5 Archive Manager API** | 4.1.0 build 30 · beta | REST API v1, HTTP or TLS | Yes — archive submit (opt-in) |
-| **P5 Archive Manager** (nsdchat edition) | 3.7.1 build 5 | `nsdchat` CLI, local | No |
-| **CopyTrust** | 2.8.3 build 24 | REST API v1 | Yes — archive submit (opt-in) |
+| **P5 Archive Manager API** | 4.3.0 build 45 · beta | REST API v1, HTTP or TLS | Yes — archive submit and restore submit (opt-in) |
+| **P5 Archive Manager** (nsdchat edition) | 3.7.2 build 6 | `nsdchat` CLI, local | No |
+| **CopyTrust** | 2.8.7 build 28 · beta | REST API v1 | Yes — archive submit (opt-in) |
 | **P5 Archive Overview** | 2.2 build 16 | REST `/archive/overview`, HTTP or TLS | No |
-| **P5 Archive Search** | 2.7 build 18 | REST API v1, HTTP or TLS | Yes — restore submit |
+| **P5 Archive Search** | 2.8 build 19 | REST API v1, HTTP or TLS | Yes — restore submit |
 | **P5 Archive Browser** | 0.37 build 56 · beta | TSV inventories + REST API v1, HTTP or TLS | Yes — restore submit (off by default) |
-| **P5 Archive Export** | 1.5 build 4 | `resources.db` read-only + `nsdchat` | No |
+| **P5 Archive Export** | 1.5.5 build 10 | `resources.db` read-only + `nsdchat` | No |
 | **P5 Health Check** (Mac / menu bar / iPhone / CLI) | 1.7.1 build 3 | REST API v1 | No |
 | **P5 Search Jumper** | 0.2.2-beta build 6 | REST `/restore/restoreselections` | Yes — restore submit |
-| **Drop Verify**, **MHL Verify**, **Folder Copy Compare** | 2.8.3 build 24 / 2.6.0 | No P5 connection | No |
+| **Drop Verify**, **MHL Verify**, **Folder Copy Compare** | 2.8.1 build 21 / 2.6.0 / 2.8.1 build 21 | No P5 connection | No |
 
 ### Endpoints used
 
 ```
 GET  /rest/v1/archive/indexes/{index}/inventory/{path}   is this file archived, and where
 GET  /rest/v1/archive/overview                           current and recent archive jobs
-GET  /rest/v1/general/volumes/{id}                       volume label, location, barcode, media type
+GET  /rest/v1/general/volumes                            every volume, as identifiers
+GET  /rest/v1/general/volumes/{id}                       volume label, location, barcode, media type, online state
 GET  /rest/v1/general/clients                            archive clients
 GET  /rest/v1/archive/plans                              archive plans, and whether they delete the source
 GET  /rest/v1/archive/entries                            resolve a path to an archive entry
@@ -53,8 +54,8 @@ POST /rest/v1/restore/restoreselections                  submit a restore job
 ```
 
 Those two `POST` calls are the only writes in the whole toolkit. Four apps can make one:
-CopyTrust and P5 Archive Manager API submit archive jobs, and P5 Archive Browser,
-P5 Archive Search and P5 Search Jumper submit restore jobs. Every other app makes `GET` calls
+CopyTrust and P5 Archive Manager API submit archive jobs, and P5 Archive Manager API,
+P5 Archive Browser, P5 Archive Search and P5 Search Jumper submit restore jobs. Every other app makes `GET` calls
 only, reads `resources.db` in read-only mode, or reads TSV inventories exported from `nsdchat`.
 
 ---
@@ -169,10 +170,26 @@ Desktop* bundles them for support.
 
 ### Two editions, deliberately separate
 
-**P5 Archive Manager 3.7.1** drives `nsdchat` and therefore has to run on a machine with local CLI
-access to P5. **P5 Archive Manager API 4.1.0** connects over the network, searches every configured
+**P5 Archive Manager 3.7.2** drives `nsdchat` and therefore has to run on a machine with local CLI
+access to P5. **P5 Archive Manager API 4.3.0** connects over the network, searches every configured
 archive index, and needs no CLI access at all. Different apps, different bundle identifiers,
 different settings, different release channels — running both is fine.
+
+### Restoring a whole project from an editor's timeline
+
+Since 4.2, P5 Archive Manager API also goes the other way. **Restore from Project File** takes the
+timeline an editor delivered (a Resolve `.drt`, Premiere or Resolve XML, FCPXML or `.fcpxmld`, or a
+list of paths), finds each media item in P5 across every archive index, says which are missing here,
+and submits one restore job for the ones chosen, to the original location or into a folder on a P5
+client. A RED clip is restored as the whole `.RDC` folder, since a timeline names only its first
+segment.
+
+Media is often moved before it is archived, and imported volumes are addressed by label, so a path
+lookup cannot always find it. Since 4.3 the app finds the volumes of an imported-volumes index over
+the REST API alone and lists them for the project's folders, confirming every path with P5; the
+alternatives are exported volume inventories or P5 Archive Browser's catalogue. On a real project
+file all 53 items were found that way, and Prepare Restore and Restore into a folder worked on them.
+Restore to the original location of imported media is still untested.
 
 ---
 
@@ -197,6 +214,11 @@ anything is submitted it resolves the item to an archive entry, so what is confi
 that was found rather than assumed, and it asks P5 which volume the item is on, whether that volume
 is online and where it is. An offline tape does not block the restore — P5 waits and asks for it —
 but the operator is told that is what will happen.
+
+Since 2.8 it can also work with an imported-volumes index, which is rooted at each volume's label
+and not at a folder such as `Volumes`. **Find imported volumes** finds the labels, they become browse
+roots and scan paths, and a request that fails says why (P5 answers a wrong password with HTTP 400,
+not 401).
 
 A folder is restored with one directory handle and P5 performs the recursion, so a folder restore
 can cover more than the app has itself scanned. A restore is submitted once and never retried,
@@ -243,8 +265,8 @@ Restore is off until enabled in *Settings ▸ Restore ▸ Enable P5 Restore*.
   are being moved the same way.
 - **P5 serves the same REST API over TLS, on port 8443 by default.** Measured against a live
   server on 2026-09-18: TLS 1.3, HTTP 200, identical paths and responses to port 8000.
-  **P5 Archive Overview 2.2, P5 Archive Search 2.7, P5 Archive Browser 0.37 and P5 Archive
-  Manager API 4.1.0 offer it as a per-server choice**, through P5Kit's trust policy; the remaining
+  **P5 Archive Overview 2.2, P5 Archive Search 2.7 and later, P5 Archive Browser 0.37 and P5 Archive
+  Manager API 4.1.0 and later offer it as a per-server choice**, through P5Kit's trust policy; the remaining
   apps still hardcode `http://`. Two things make it more than
   a port change: TLS is not enabled on every server (of three reachable servers, 8443 answered on
   one and not another), and the certificate P5 ships with is a self-signed placeholder whose
@@ -260,7 +282,7 @@ Restore is off until enabled in *Settings ▸ Restore ▸ Enable P5 Restore*.
 - **An archive plan can delete your originals, in two different ways.** A plan carries separate
   settings to remove the archived files, and to remove the files *and their folders*. P5 performs
   that deletion itself once the job succeeds, without the submitting app's proof report or receipt.
-  P5 Archive Manager API 4.1.0 names which of the two a plan does, and blocks such plans by default
+  P5 Archive Manager API (since 4.1.0) names which of the two a plan does, and blocks such plans by default
   — a setting you can turn off. Anything else submitting archive jobs should read both flags, not
   just the first: reading only the files flag leaves folder-deleting plans looking harmless.
 - **Delete is real.** Test the delete chain on a throwaway folder and read the receipt before
@@ -271,7 +293,7 @@ Restore is off until enabled in *Settings ▸ Restore ▸ Enable P5 Restore*.
   *Settings ▸ Restore ▸ Enable P5 Restore*. It restores whole folders only; individual-file
   restore is deliberately not built, because per-file selections are known to flatten the restored
   tree without per-entry `targetPath` containment, which is not yet verified.
-- **Several apps are pre-release.** P5 Archive Manager API 4.1.0, P5 Archive Browser 0.37 and
+- **Several apps are pre-release.** P5 Archive Manager API 4.3.0, P5 Archive Browser 0.37 and
   P5 Search Jumper 0.2.2 are betas.
 - **Proxies are derivatives.** They never replace verified originals in an archive.
 

@@ -25,6 +25,17 @@ Submitting an archive request and receiving a job ID establishes that work was a
 
 Opaque archive entry handles come from P5. Applications should preserve them exactly rather than reconstructing them from a filename or barcode.
 
+## Finding media in an imported-volumes index
+
+An imported-volumes index is addressed by volume label, and P5 does not list the labels. An application that needs to check or restore media there does this:
+
+1. **Find the labels.** Use P5Kit's discovery, and let the operator add any it missed from the P5 web application. Keep them per server.
+2. **Look the exact path up** with the `database` header naming the index, using the source path with a leading slash and without the label. A hit returns the entry handle and the volume ID.
+3. **If it is not there, the media may have been moved before it was archived** (into a "To Archive" folder, say), so the path in the index is not the path a project names. List the volumes under their plain labels for the project's folders, within a bounded number of requests, and confirm each candidate path with a lookup. Nothing counts as found until P5 has confirmed it.
+4. **Restore from the entry handle**, preserved exactly as P5 returned it. Ask which volume holds the item and whether it is online; the volume ID is the reliable link, since an index name can differ from the volume's own label.
+
+A misspelled label is answered 404 like a label that is not in the index, so an application should report a label it could not list rather than skip it silently. One misspelled label once hid the only volume that held a whole project.
+
 ## An uncertain submission
 
 A timeout can occur after a server has accepted work but before the client receives the response. Repeating the request immediately could create another archive or restore job.
@@ -37,4 +48,4 @@ Applications must implement the reconciliation step using available job and oper
 
 The private package includes automated tests for connection models, endpoint resolution, mutation decisions, request encoding, response parsing, redaction, and transports. Some transport tests exercise a local loopback server; those are not live P5 compatibility tests.
 
-The current consumers are CopyTrust and P5 Search Jumper. Adoption does not mean each uses every connection or safety foundation. The examples here are reviewed request shapes and were not executed against a P5 server as part of publishing this documentation.
+Six applications consume the package (see the overview). Adoption does not mean each uses every connection or safety foundation. The examples here are reviewed request shapes and were not executed against a P5 server as part of publishing this documentation. The imported-volume behaviour described above was measured against a live P5 server on 2026-09-25.

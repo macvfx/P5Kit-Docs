@@ -23,6 +23,8 @@ P5Kit provides a common foundation for these tasks. Its purpose is to make integ
 | Resource discovery | Reads server information, clients, archive plans, indexes, and metadata keys. |
 | Archiving | Submits selected paths, supports per-path metadata, and extracts job and entry information. |
 | Restoring | Resolves exact archive entry handles and submits restore selections with relative-target validation. |
+| Imported volumes | Finds the volume labels of an index rooted at labels, such as Imported-Volumes, which P5 does not list over REST, by trying each volume's label as a top-level name. Reads a pasted list of labels, and records which volumes an index name's entries are on. |
+| Errors | Recognises a rejected login, which P5 reports as HTTP 400 with a plain-text body rather than 401. |
 | Jobs | Reads job state, reports, and protocol information. |
 | Evidence | Captures HTTP results with redaction support and writes versioned archive receipts atomically. |
 | Mutation safety | Provides endpoint pins and receipt decisions for uncertain delivery; receipt policy never permits automatic replay. |
@@ -31,11 +33,11 @@ The endpoint resolver and safety models are building blocks. Calling application
 
 ## Status and scope
 
-This overview describes the **0.8.0-dev** development baseline, reviewed on **2026-09-19**. P5Kit targets macOS 13 or later and uses Swift tools 5.9. Its public API is still evolving.
+This overview describes the **0.9.0-dev** development baseline, reviewed on **2026-09-25**. P5Kit targets macOS 13 or later and uses Swift tools 5.9. Its public API is still evolving.
 
-Six applications consume it, pinned by exact tag and moved only when each application is next worked on, so they sit on different baselines by design: P5 Archive Overview, P5 Archive Search, P5 Archive Browser and P5 Archive Manager API on 0.8.0-dev, P5 Search Jumper on 0.4.0-dev, and CopyTrust on 0.3.0-dev. Project Folder Tracker remains a prospective adopter.
+Six applications consume it, pinned by exact tag and moved only when each application is next worked on, so they sit on different baselines by design: P5 Archive Overview and P5 Archive Browser on 0.8.0-dev, P5 Archive Search and P5 Archive Manager API on 0.9.0-dev, P5 Search Jumper on 0.4.0-dev, and CopyTrust on 0.3.0-dev. Project Folder Tracker remains a prospective adopter.
 
-Consuming the package and adopting its typed surface are different things. P5 Archive Manager API resolves 0.8.0-dev for the network transport and TLS trust model only — it still parses P5's responses with its own code — so it is a consumer of the transport layer rather than of the typed REST API.
+Consuming the package and adopting its typed surface are different things. P5 Archive Manager API resolves 0.9.0-dev for the network transport and TLS trust model, and uses the typed API for entry lookup, restore and job follow-up, volume details and, new in 0.9.0-dev, finding the labels of an imported-volumes index. Its check of a local folder against P5's inventory still parses P5's responses with its own code.
 
 See [Capabilities and boundaries](CAPABILITIES.md) for implemented versus developing areas, [Workflow and evidence](WORKFLOWS.md) for application responsibilities, and [P5 API examples](P5_API_EXAMPLES.md) for illustrative HTTP requests.
 
