@@ -2,7 +2,7 @@
 
 [Overview](README.md) · [Workflow and evidence](WORKFLOWS.md) · [API examples](P5_API_EXAMPLES.md)
 
-The documented baseline is 0.8.0-dev, reviewed on 2026-09-18. Implementation availability, application adoption, and live-server validation are distinct: a capability in the library does not establish that every consumer uses it or that it has been tested against every P5 version.
+The documented baseline is 0.9.0-dev, reviewed on 2026-09-25. Implementation availability, application adoption, and live-server validation are distinct: a capability in the library does not establish that every consumer uses it or that it has been tested against every P5 version.
 
 ## Connections and transport
 
@@ -29,15 +29,40 @@ Either transport can address a P5 server over plain HTTP or TLS. P5 serves the s
 | Submit archive selection | `POST archive/plans/{plan-id}/archiveselections` |
 | Resolve an archive entry | `GET archive/entries` with client, path, and optional database headers |
 | Submit restore selection | `POST restore/restoreselections` |
+| Volumes, one volume, and its jobs | `GET general/volumes`, `GET general/volumes/{volume-id}`, `GET general/volumes/{volume-id}/jobs` |
+| List one level of an index | `GET archive/indexes/{index-id}/inventory/{path}` |
+| Archive overview | `GET archive/overview` |
 | Read job state | `GET general/jobs/{job-id}` |
 | Read job report | `GET general/jobs/{job-id}/report` |
 | Read job protocol | `GET general/jobs/{job-id}/protocol` |
 
 Archive requests support metadata attached to individual paths. Entry lookup resolves an opaque handle for the selected client/path and optional index. It distinguishes recognized missing-entry responses from other failures; an arbitrary HTTP 500 is not proof that a file is absent.
 
+Two things about the lookup were measured against a live server and are easy to get wrong. Without a `database` header it does not reach an imported-volumes index. And for that index the path is the source path with a leading slash and **without** the volume's label: a path that starts with the label is answered as an unknown entry.
+
 Restore selections can carry relative target paths. P5Kit rejects empty, absolute, and dot-component targets in that field. The calling application still owns destination selection, existing-file checks, and authorization.
 
 Job state and completion are parsed separately. Reports can be requested as plain text; protocol requests can ask for JSON. A job identifier is needed for later reconciliation and evidence.
+
+## Label-rooted indexes, such as Imported-Volumes
+
+An index that holds imported volumes is addressed differently from an ordinary archive index, and P5 does not say so in the responses. Measured against a live server (an Imported-Volumes index of 15 volumes among 169):
+
+- **Listing is rooted at the plain volume label.** `inventory/<label>/Volumes/…` lists folder by folder. `inventory/Volumes`, the index root, and a name shaped `<label>-<uuid>` (as the P5 web application can show it) are all answered 404, with the body `{}`.
+- **Entry lookup is not rooted at the label** (see above). A listing path and a lookup path for the same file therefore differ by the label.
+- **P5 does not list the labels.** The index root is a 404 and a volume record carries no pool, successor or index field.
+
+P5Kit's part is to make that manageable:
+
+- `discoverIndexLabels` tries each volume's label, and its barcode where it has one, as a top-level name and returns the ones the index answers for, with the volumes that offered each name and its first-level folders. It is read-only, bounds its concurrency, reports progress, treats a 404 as "not in this index" and stops on a rejected login. A label offered by two volumes is marked ambiguous, and volumes that hold nothing are skipped unless asked. On the measured server it found 14 of the 15 labels in 487 requests.
+- A pasted list of labels is parsed and merged with the discovered ones. This is how a label that has no volume record, which probing cannot find, gets in.
+- A label-to-volume map records the volume IDs that an index name's entries carry, and reports where the index name differs from the volume's own label. The volume ID, not the name, is the key to use for restore.
+
+What this does not do: find a label that has no volume record, search by file name or by folder prefix (P5 offers neither over REST), or decide which of two volumes sharing a label is meant. Applications that need a file-name search use exported inventories, or list folders under the labels within a bounded number of requests.
+
+## Errors
+
+P5 answers a wrong password with **HTTP 400** and the plain-text body `Wrong username or password.`, not 401. P5Kit keeps a plain-text error body as the error's message and classifies a rejected login whichever status carries it, including when the client has redacted a password that is part of the message. An unknown entry is HTTP 500 with a text body, and a missing inventory path is HTTP 404 with `{}`.
 
 ## Evidence and responsibility
 
@@ -49,8 +74,8 @@ The library's mutation receipt policy does not allow automatic replay. If delive
 
 ## Developing or outside this baseline
 
-- Volume listing, details, and volume job lookup are under development beyond the documented tag.
-- Shared archive-index inventory support and further application migrations are future work.
+- Further application migrations are future work. Several applications still parse P5's responses with their own code.
+- A search by file name or by folder prefix is not something P5 offers over REST, so it is not something P5Kit can supply.
 - A general monitoring interface for devices, jukeboxes, backup, and synchronization resources is not part of this baseline.
 - Shared Keychain storage, application databases, and an `nsdchat` integration are not supplied by this baseline.
 - UI, scheduling, archive-plan approval, bounded polling policy, search experiences, and independent file-hash verification remain owned by applications.

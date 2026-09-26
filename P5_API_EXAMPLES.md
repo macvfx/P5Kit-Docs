@@ -42,6 +42,54 @@ path: /Volumes/Example_Archive/Example_Project/Example_Clip.mov
 
 The `database` header selects the archive index for this lookup. P5Kit's exact lookup supports omitting it when an index is not supplied. Preserve the returned opaque entry handle. Paths containing spaces or other special characters need appropriate header encoding; this example deliberately avoids them.
 
+## Read volumes
+
+```http
+GET /rest/v1/general/volumes HTTP/1.1
+Host: p5.example.invalid
+Authorization: Basic <base64-credentials>
+Accept: application/json
+```
+
+The list returns identifiers and links only. Read each volume with `GET /rest/v1/general/volumes/<volume-id>`, which returns its label, barcode, online state, location and sizes. Sizes are in kilobytes.
+
+## List one level of an imported-volumes index
+
+An index that holds imported volumes is rooted at the volume's plain label:
+
+```http
+GET /rest/v1/archive/indexes/Imported-Volumes/inventory/Example_Import.0001/Volumes HTTP/1.1
+Host: p5.example.invalid
+Authorization: Basic <base64-credentials>
+Accept: application/json
+```
+
+This lists the folders under the label. `inventory/Volumes` and the index root are answered 404 with the body `{}`, and so is a name shaped `Example_Import.0001-<uuid>`, which is how the P5 web application can display the same folder. P5 does not list the labels; see the capabilities page for how applications find them.
+
+## Resolve an exact path in an imported-volumes index
+
+```http
+GET /rest/v1/archive/entries HTTP/1.1
+Host: p5.example.invalid
+Authorization: Basic <base64-credentials>
+Accept: application/json
+client: <client-id>
+database: Imported-Volumes
+path: /Volumes/Example_Source/Example_Project/Example_Clip.mov
+```
+
+The path has a leading slash and does **not** start with the volume's label. A path such as `/Example_Import.0001/Volumes/Example_Source/…` is answered HTTP 500 with a text body saying the entry could not be resolved. Without the `database` header the lookup does not reach this index at all.
+
+## Error responses
+
+| Situation | Response |
+| --- | --- |
+| Wrong password | HTTP 400, plain-text body `Wrong username or password.` (not 401) |
+| Entry lookup found nothing | HTTP 500, plain-text body saying the handle could not be resolved: unknown entry |
+| Inventory path not in the index | HTTP 404, body `{}` |
+
+A 404 carries no reason, so "no such label", "label in another index" and "nothing imported" look the same.
+
 ## Submit an archive selection
 
 This request starts work. Review the selected plan, client, paths, and plan-specific source handling before submitting it.
